@@ -1,0 +1,25 @@
+.Header-div {
+	background-color: #282c34;
+	height: 100px;
+	color: white;
+	clear: both;
+	padding: 10px;
+}
+
+.Header-left {
+	width: 60%;
+	float: left;
+}
+
+.Header-right {
+	float: right;
+	align-items: right;
+	justify-content: center;
+	height: 100%;
+	width: 150px;
+}
+
+.Header-right button {
+	width: 100%;
+	height: 30px;
+}
