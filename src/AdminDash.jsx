@@ -13,6 +13,12 @@ class AdminDash extends Component {
 		this.state = {
 			redirectNewUser: false,
 			users: [],
+			sort: {
+				nameAscending: false,
+				nameDescending: false,
+				startAscending: false,
+				startDescending: false
+			},
 			startYear: current.getFullYear(),
 			startMonth: current.getMonth(),
 			startDate: current.getDate() - 1,
@@ -46,7 +52,6 @@ class AdminDash extends Component {
 				...prevState
 			};
 			updates.users[i].calendarVisible = !prevState.users[i].calendarVisible;
-			console.log(updates);
 			return updates;
 		});
 	};
@@ -110,11 +115,11 @@ class AdminDash extends Component {
 			this.db.collection('users').onSnapshot((snapshot) => {
 				var monthRefs = [];
 				var monthInfo = [];
-				snapshot.docs.forEach((doc, index) => {
+				let users = snapshot.docs.map((doc) => ({uid: doc.id, ...doc.data()})).sort(this.compareUsers);
+				users.forEach((doc, index) => {
 					let dateObj = new Date(startYear, startMonth, startDate + 1);
 					while (dateObj <= endDateObj) {
-						console.log('hours/' + doc.id + '/' + dateObj.getFullYear() + '/' + dateObj.getMonth() + '/');
-						monthRefs.push(this.db.collection('users').doc(doc.id)
+						monthRefs.push(this.db.collection('users').doc(doc.uid)
 							.collection('year').doc(dateObj.getFullYear().toString())
 							.collection('month').doc(dateObj.getMonth().toString()).get());
 						
@@ -163,8 +168,8 @@ class AdminDash extends Component {
 				// add header rows
 				range = 'Sheet1!B1';
 				values = [];
-				snapshot.docs.forEach((doc) => {
-					values.push([doc.data().name, doc.data().email, doc.data().supervisor, doc.data().start.semester, doc.data().start.year]);
+				users.forEach((user) => {
+					values.push([user.name, user.email, user.supervisor, user.start.semester, user.start.year]);
 				});
 				data.push({
 					range: range,
@@ -186,7 +191,7 @@ class AdminDash extends Component {
 				let lastRow = (endDateObj - startDateObj)/(1000*60*60*24) + headers + 1;
 				range = 'Sheet1!B' + (lastRow + 1);
 				values = [];
-				snapshot.docs.forEach((doc,i) => {
+				users.forEach((doc,i) => {
 					let letteredNum = toLetteredNum(i + 2);
 					values.push('=SUM(' + letteredNum + (headers + 1) + ':' + letteredNum + lastRow + ')');
 				});
@@ -207,7 +212,6 @@ class AdminDash extends Component {
 				Promise.all(monthRefs).then((snapshots) => {
 					for (var i = 0; i < snapshots.length; i++) {
 						let monthStartDate = new Date(monthInfo[i].year, monthInfo[i].month, monthInfo[i].startDate + 1);
-						console.log((monthInfo[i].userIndex + 2) + ': ' + toLetteredNum(i + 2));
 						var range = 'Sheet1!' + toLetteredNum(monthInfo[i].userIndex + 2) + ((monthStartDate - startDateObj)/(1000*60*60*24) + headers + 1);
 						var values = [];
 						for (var dateIndex = monthInfo[i].startDate; dateIndex <= monthInfo[i].endDate; dateIndex++) {
@@ -238,11 +242,90 @@ class AdminDash extends Component {
 					
 				});
 				
-			}).catch((error) => {
-				console.log(error);
 			});
 			
 		});
+	};
+	
+	handleNameAscending = (event) => {
+		let checked = event.target.checked;
+		this.setState((prevState) => {
+			var update = {sort: prevState.sort};
+			update.sort.nameAscending = checked;
+			if (checked) {
+				update.sort.nameDescending = false;
+				update.sort.startAscending = false;
+				update.sort.startDescending = false;
+			}
+			
+			return update;
+		});
+	};
+	
+	handleNameDescending = (event) => {
+		let checked = event.target.checked;
+		this.setState((prevState) => {
+			var update = {sort: prevState.sort};
+			update.sort.nameDescending = checked;
+			if (checked) {
+				update.sort.nameAscending = false;
+				update.sort.startAscending = false;
+				update.sort.startDescending = false;
+			}
+			
+			return update;
+		});
+	};
+	
+	handleStartAscending = (event) => {
+		let checked = event.target.checked;
+		this.setState((prevState) => {
+			var update = {sort: prevState.sort};
+			update.sort.startAscending = checked;
+			if (checked) {
+				update.sort.nameAscending = false;
+				update.sort.nameDescending = false;
+				update.sort.startDescending = false;
+			}
+			
+			return update;
+		});
+	};
+	
+	handleStartDescending = (event) => {
+		let checked = event.target.checked;
+		this.setState((prevState) => {
+			var update = {sort: prevState.sort};
+			update.sort.startDescending = checked;
+			if (checked) {
+				update.sort.nameAscending = false;
+				update.sort.nameDescending = false;
+				update.sort.startAscending = false;
+			}
+			
+			return update;
+		});
+	};
+	
+	compareUsers = (a, b) => {
+		var compareName = a.name.split(' ').pop(0).localeCompare(b.name.split(' ').pop(0));
+		if (this.state.sort.nameDescending) compareName *= -1;
+		
+		var compareStart = a.start.year - b.start.year;
+		if (compareStart === 0) compareStart = b.start.semester.split(' ').pop(0).localeCompare(a.start.semester.split(' ').pop(0))
+		if (this.state.sort.startDescending) compareStart *= -1;
+		
+		var result = 0;
+		if (this.state.sort.nameAscending || this.state.sort.nameDescending) {
+			result = compareName;
+			if (result === 0) result = compareStart;
+		}
+		if (this.state.sort.startAscending || this.state.sort.startDescending) {
+			result = compareStart;
+			if (result === 0) result = compareName;
+		}
+		console.log(result);
+		return result;
 	};
 	
 	setRange = () => {
@@ -275,27 +358,84 @@ class AdminDash extends Component {
 				</div>
 				<table style={{width: '100%'}}>
 					<colgroup>
-						<col span="1" style={{width: '50%'}} />
-						<col span="1" style={{width: '25%'}} />
-						<col span="1" style={{width: '25%'}} />
+						<col span="1" style={{width: '30%'}} />
+						<col span="1" style={{width: '30%'}} />
+						<col span="1" style={{width: '20%'}} />
+						<col span="1" style={{width: '20%'}} />
 					</colgroup>
 					<tbody>
 						<tr>
-							<th style={{borderBottom: '1px solid #ddd'}}>
+							<th>
 								<div style={{textAlign: 'left'}}>
 									User
 								</div>
 							</th>
-							<th style={{borderBottom: '1px solid #ddd'}}>Details</th>
-							<th style={{borderBottom: '1px solid #ddd'}}>Delete</th>
+							<th>
+								<div style={{textAlign: 'left'}}>
+									Start Date
+								</div>
+							</th>
+							<th>Details</th>
+							<th>Delete</th>
 						</tr>
-						{this.state.users.map((u, i) =>
+						<tr>
+							<td style={{borderBottom: '1px solid #ddd', borderTop: '1px solid #ddd'}}>
+								<table style={{width: '100%'}}>
+									<tbody>
+										<tr>
+											<td colSpan='2'>Sort by name:</td>
+										</tr>
+										<tr>
+											<td>
+												<input type='checkbox' style={{width: '20px', height: '20px'}} onChange={this.handleNameAscending} checked={this.state.sort.nameAscending} />
+											</td>
+											<td>Ascending</td>
+										</tr>
+										<tr>
+											<td>
+												<input type='checkbox' style={{width: '20px', height: '20px'}} onChange={this.handleNameDescending} checked={this.state.sort.nameDescending} />
+											</td>
+											<td>Descending</td>
+										</tr>
+									</tbody>
+								</table>
+							</td>
+							<td style={{borderBottom: '1px solid #ddd', borderTop: '1px solid #ddd'}}>
+								<table style={{width: '100%'}}>
+									<tbody>
+										<tr>
+											<td colSpan='2'>Sort by start:</td>
+										</tr>
+										<tr>
+											<td>
+												<input type='checkbox' style={{width: '20px', height: '20px'}} onChange={this.handleStartAscending} checked={this.state.sort.startAscending} />
+											</td>
+											<td>Ascending</td></tr>
+										<tr>
+											<td>
+												<input type='checkbox' style={{width: '20px', height: '20px'}} onChange={this.handleStartDescending} checked={this.state.sort.startDescending} />
+											</td>
+											<td>Descending</td>
+										</tr>
+									</tbody>
+								</table>
+							</td>
+							<td style={{borderBottom: '1px solid #ddd', borderTop: '1px solid #ddd'}}></td>
+							<td style={{borderBottom: '1px solid #ddd', borderTop: '1px solid #ddd'}}></td>
+						</tr>
+						{this.state.users.sort(this.compareUsers).map((u, i) =>
 						<>
 							<tr>
 								<td>
 									<div style={{textAlign: 'left'}}>
 										<p style={{fontSize: '150%', margin: '0'}}>{u.name}</p>
 										<p style={{margin: '0'}}>{u.email}</p>
+									</div>
+								</td>
+								<td>
+									<div>
+										<p style={{fontSize: '150%', margin: '0'}}>{u.start.year}</p>
+										<p style={{margin: '0'}}>{u.start.semester}</p>
 									</div>
 								</td>
 								<td>

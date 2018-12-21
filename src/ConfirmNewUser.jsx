@@ -49,7 +49,7 @@ export default class ConfirmNewUser extends Component {
 					supervisor: this.state.supervisor,
 					start: {
 						semester: this.state.semester,
-						year: this.state.year
+						year: parseInt(this.state.year)
 					}
 				}).then(() => {
 				this.sendConfirmation();
