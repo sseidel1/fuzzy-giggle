@@ -162,7 +162,7 @@ class App extends Component {
 	
 	renderConfirmNewUser = () => {
 		return (
-			<Route path="/new/:type/:uid/:name/:email" render={(props) => (
+			<Route path="/new/:type/:uid/:name/:email/:supervisor/:semester/:year" render={(props) => (
 				<div style={{backgroundColor: '#FF0000', padding: '10px'}}>
 					<ConfirmNewUser uid={this.state.uid} profile={this.state.profile} props={props} />
 				</div>

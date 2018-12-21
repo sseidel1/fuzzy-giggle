@@ -144,6 +144,10 @@ class AdminDash extends Component {
 				var values = [];
 				values.push('Name');
 				values.push('Email');
+				values.push('Supervisor');
+				values.push('Start Semester');
+				values.push('Start Year');
+				let headers = values.length;
 				for (let dateObj = new Date(startYear, startMonth, startDate + 1);
 						dateObj <= endDateObj; dateObj.setDate(dateObj.getDate() + 1)) {
 					values.push((dateObj.getMonth() + 1) +'/' + dateObj.getDate() + '/' + dateObj.getFullYear());
@@ -155,11 +159,11 @@ class AdminDash extends Component {
 					values: [values]
 				});
 				
-				// add name and email rows
+				// add header rows
 				range = 'Sheet1!B1';
 				values = [];
 				snapshot.docs.forEach((doc) => {
-					values.push([doc.data().name, doc.data().email]);
+					values.push([doc.data().name, doc.data().email, doc.data().supervisor, doc.data().start.semester, doc.data().start.year]);
 				});
 				data.push({
 					range: range,
@@ -178,12 +182,12 @@ class AdminDash extends Component {
 				};
 				
 				// add name and email rows
-				let lastRow = (endDateObj - startDateObj)/(1000*60*60*24) + 3;
+				let lastRow = (endDateObj - startDateObj)/(1000*60*60*24) + headers + 1;
 				range = 'Sheet1!B' + (lastRow + 1);
 				values = [];
 				snapshot.docs.forEach((doc,i) => {
 					let letteredNum = toLetteredNum(i + 2);
-					values.push('=SUM(' + letteredNum + '1:' + letteredNum + lastRow + ')');
+					values.push('=SUM(' + letteredNum + (headers + 1) + ':' + letteredNum + lastRow + ')');
 				});
 				data.push({
 					range: range,
@@ -202,7 +206,7 @@ class AdminDash extends Component {
 				Promise.all(monthRefs).then((snapshots) => {
 					for (var i = 0; i < snapshots.length; i++) {
 						let monthStartDate = new Date(monthInfo[i].year, monthInfo[i].month, monthInfo[i].startDate + 1);
-						var range = 'Sheet1!' + toLetteredNum(i + 2) + ((monthStartDate - startDateObj)/(1000*60*60*24) + 3);
+						var range = 'Sheet1!' + toLetteredNum(i + 2) + ((monthStartDate - startDateObj)/(1000*60*60*24) + headers + 1);
 						var values = [];
 						for (var dateIndex = monthInfo[i].startDate; dateIndex <= monthInfo[i].endDate; dateIndex++) {
 							values.push(getHoursFromLocation(snapshots[i].data(), dateIndex));
