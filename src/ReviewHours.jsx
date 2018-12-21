@@ -119,7 +119,7 @@ export default class ReviewHours extends Component {
 				let dbRef = this.db.collection('users').doc(this.state.uid)
 					.collection('submitted').doc(update.year + '-' + update.month + '-' + update.date);
 				batch.delete(dbRef);
-				emailUpdates += update.month + '/' + update.date + '/' + update.year + ': ' + update.hours + ' (' + message + ')\n';
+				emailUpdates += (update.month + 1) + '/' + (update.date + 1) + '/' + update.year + ': ' + update.hours + ' (' + message + ')\n';
 			}
 		});
 		

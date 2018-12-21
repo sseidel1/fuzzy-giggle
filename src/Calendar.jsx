@@ -345,7 +345,7 @@ export default class Calendar extends Component {
 					hours: update.hours
 				};
 				batch.set(dbRef, hoursUpdate);
-				emailUpdates += update.month + '/' + update.date + '/' + update.year + ': ' + update.hours + '\n';
+				emailUpdates += (update.month + 1) + '/' + (update.date + 1) + '/' + update.year + ': ' + update.hours + '\n';
 			}
 		});
 		

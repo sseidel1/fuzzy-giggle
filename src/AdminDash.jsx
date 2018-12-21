@@ -110,7 +110,7 @@ class AdminDash extends Component {
 			this.db.collection('users').onSnapshot((snapshot) => {
 				var monthRefs = [];
 				var monthInfo = [];
-				snapshot.docs.forEach((doc) => {
+				snapshot.docs.forEach((doc, index) => {
 					let dateObj = new Date(startYear, startMonth, startDate + 1);
 					while (dateObj <= endDateObj) {
 						console.log('hours/' + doc.id + '/' + dateObj.getFullYear() + '/' + dateObj.getMonth() + '/');
@@ -128,7 +128,8 @@ class AdminDash extends Component {
 							year: dateObj.getFullYear(),
 							month: dateObj.getMonth(),
 							startDate: monthStartDate,
-							endDate: monthEndDate
+							endDate: monthEndDate,
+							userIndex: index
 						});
 						
 						// set date to the 1st of the next month
@@ -206,7 +207,8 @@ class AdminDash extends Component {
 				Promise.all(monthRefs).then((snapshots) => {
 					for (var i = 0; i < snapshots.length; i++) {
 						let monthStartDate = new Date(monthInfo[i].year, monthInfo[i].month, monthInfo[i].startDate + 1);
-						var range = 'Sheet1!' + toLetteredNum(i + 2) + ((monthStartDate - startDateObj)/(1000*60*60*24) + headers + 1);
+						console.log((monthInfo[i].userIndex + 2) + ': ' + toLetteredNum(i + 2));
+						var range = 'Sheet1!' + toLetteredNum(monthInfo[i].userIndex + 2) + ((monthStartDate - startDateObj)/(1000*60*60*24) + headers + 1);
 						var values = [];
 						for (var dateIndex = monthInfo[i].startDate; dateIndex <= monthInfo[i].endDate; dateIndex++) {
 							values.push(getHoursFromLocation(snapshots[i].data(), dateIndex));
