@@ -78,10 +78,14 @@ class AdminDash extends Component {
 		}), this.setRange);
 	};
 	
+	dateDiff = (startDate, endDate) => {
+		return Math.round((endDate - startDate)/(1000*60*60*24)) + 1;
+	};
+	
 	handleCreate = (startYear, startMonth, startDate, endYear, endMonth, endDate) => () => {
 		let startDateObj = new Date(startYear, startMonth, startDate + 1);
 		let endDateObj = new Date(endYear, endMonth, endDate + 1);
-		let range = (endDateObj - startDateObj)/(1000*60*60*24) + 1;
+		let range = this.dateDiff(startDateObj, endDateObj);
 		if (range < 1) {
 			return;
 		}
@@ -188,7 +192,7 @@ class AdminDash extends Component {
 				};
 				
 				// add name and email rows
-				let lastRow = (endDateObj - startDateObj)/(1000*60*60*24) + headers + 1;
+				let lastRow = this.dateDiff(startDateObj, endDateObj) + headers;
 				range = 'Sheet1!B' + (lastRow + 1);
 				values = [];
 				users.forEach((doc,i) => {
@@ -212,7 +216,7 @@ class AdminDash extends Component {
 				Promise.all(monthRefs).then((snapshots) => {
 					for (var i = 0; i < snapshots.length; i++) {
 						let monthStartDate = new Date(monthInfo[i].year, monthInfo[i].month, monthInfo[i].startDate + 1);
-						var range = 'Sheet1!' + toLetteredNum(monthInfo[i].userIndex + 2) + ((monthStartDate - startDateObj)/(1000*60*60*24) + headers + 1);
+						var range = 'Sheet1!' + toLetteredNum(monthInfo[i].userIndex + 2) + (this.dateDiff(startDateObj, monthStartDate) + headers);
 						var values = [];
 						for (var dateIndex = monthInfo[i].startDate; dateIndex <= monthInfo[i].endDate; dateIndex++) {
 							values.push(getHoursFromLocation(snapshots[i].data(), dateIndex));
@@ -324,14 +328,13 @@ class AdminDash extends Component {
 			result = compareStart;
 			if (result === 0) result = compareName;
 		}
-		console.log(result);
 		return result;
 	};
 	
 	setRange = () => {
 		let startDate = new Date(this.state.startYear, this.state.startMonth, this.state.startDate + 1);
 		let endDate = new Date(this.state.endYear, this.state.endMonth, this.state.endDate + 1);
-		let range = (endDate - startDate)/(1000*60*60*24) + 1;
+		let range = this.dateDiff(startDate, endDate);
 		this.setState({
 			range: (range > 0 ? range : 0)
 		});
@@ -449,7 +452,7 @@ class AdminDash extends Component {
 								</td>
 							</tr>
 							<tr>
-								<td colSpan='3'>
+								<td colSpan='4'>
 									{this.renderCalendarForUser(i)}
 								</td>
 							</tr>

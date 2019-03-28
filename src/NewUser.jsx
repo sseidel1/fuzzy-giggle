@@ -171,7 +171,7 @@ export default class NewUser extends Component {
 							<td>{this.state.email}</td>
 						</tr>
 						<tr>
-							<th>Supervisor</th>
+							<th>Supervisor Email</th>
 							<td>
 								<input type="text" value={this.state.supervisor} onChange={this.handleSupervisorChange}
 									style={{

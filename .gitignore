@@ -5,6 +5,12 @@
 /.pnp
 .pnp.js
 
+.vs/
+src/credentials.json
+src/config.js
+.firebase/
+.firebaserc
+
 # testing
 /coverage
 

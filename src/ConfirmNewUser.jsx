@@ -156,7 +156,7 @@ export default class ConfirmNewUser extends Component {
 								<td>{this.state.email}</td>
 							</tr>
 							<tr>
-								<th>Supervisor</th>
+								<th>Supervisor Email</th>
 								<td>{this.state.supervisor}</td>
 							</tr>
 							<tr>
